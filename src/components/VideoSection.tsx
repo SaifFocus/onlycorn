@@ -20,6 +20,10 @@ export interface TransitionConfig {
   blurAmount?: number;
   /** Ken-burns scale range. Video scales from (1+base-amp/2) → (1+base+amp/2). Default {base: 0.04, amplitude: 0.04} */
   scale?: { base?: number; amplitude?: number };
+  /** Parallax depth: how far the video drifts vs scroll, in vh. 0 disables. Default 18 */
+  parallaxBackground?: number;
+  /** Parallax depth for foreground (children/content) in vh. Should be < background for depth. Default 6 */
+  parallaxForeground?: number;
 }
 
 interface VideoSectionProps {
@@ -73,6 +77,8 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     const blurAmount = transition?.blurAmount ?? 6;
     const scaleBase = transition?.scale?.base ?? 0.04;
     const scaleAmp = transition?.scale?.amplitude ?? 0.04;
+    const parallaxBg = transition?.parallaxBackground ?? 18;
+    const parallaxFg = transition?.parallaxForeground ?? 6;
 
     // Lazy-load video once it nears the viewport.
     useEffect(() => {
@@ -119,6 +125,14 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
     const scale = 1 + scaleBase + (progress - 0.5) * scaleAmp;
 
+    // Scroll parallax: progress 0→1 maps to -strength/2 → +strength/2 (vh).
+    // Background drifts slower than scroll (translates UP as you scroll DOWN through the section),
+    // foreground drifts faster, creating depth between scenes.
+    const bgOffsetVh = (0.5 - progress) * parallaxBg;
+    const fgOffsetVh = (0.5 - progress) * parallaxFg;
+    // Expand video bounds by the half-range of motion so the layer never reveals an edge.
+    const bgInsetVh = parallaxBg / 2;
+
     return (
       <section
         id={id}
@@ -130,13 +144,15 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
         className={`relative w-screen overflow-hidden ${className}`}
         style={{ height: `${heightVh}vh` }}
       >
-        {/* Video layer */}
+        {/* Video layer (parallax background) */}
         <div
-          className="absolute inset-0 will-change-transform"
+          className="absolute left-0 right-0 will-change-transform"
           style={{
+            top: `-${bgInsetVh}vh`,
+            bottom: `-${bgInsetVh}vh`,
             opacity,
             filter: blurPx ? `blur(${blurPx}px)` : "none",
-            transform: `scale(${scale})`,
+            transform: `translate3d(0, ${bgOffsetVh}vh, 0) scale(${scale})`,
             transition: "filter 200ms linear",
           }}
         >
@@ -195,7 +211,13 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
         </div>
 
         {/* Content */}
-        <div className={`relative z-10 w-full h-full ${className}`}>{children}</div>
+        {/* Content (parallax foreground) */}
+        <div
+          className={`relative z-10 w-full h-full will-change-transform ${className}`}
+          style={{ transform: `translate3d(0, ${fgOffsetVh}vh, 0)` }}
+        >
+          {children}
+        </div>
       </section>
     );
   }
