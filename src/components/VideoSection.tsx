@@ -116,8 +116,8 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
             ? ((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
             : 0;
 
-    // Slight scale parallax on video.
-    const scale = 1.04 + (progress - 0.5) * 0.04;
+    // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
+    const scale = 1 + scaleBase + (progress - 0.5) * scaleAmp;
 
     return (
       <section
