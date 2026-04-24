@@ -82,6 +82,9 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
       className = "",
       eager = false,
       transition,
+      scrub = false,
+      scrubRange = [0, 1],
+      scrubReverse = false,
     },
     _ref
   ) => {
