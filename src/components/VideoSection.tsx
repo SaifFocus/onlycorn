@@ -144,13 +144,15 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
         className={`relative w-screen overflow-hidden ${className}`}
         style={{ height: `${heightVh}vh` }}
       >
-        {/* Video layer */}
+        {/* Video layer (parallax background) */}
         <div
-          className="absolute inset-0 will-change-transform"
+          className="absolute left-0 right-0 will-change-transform"
           style={{
+            top: `-${bgInsetVh}vh`,
+            bottom: `-${bgInsetVh}vh`,
             opacity,
             filter: blurPx ? `blur(${blurPx}px)` : "none",
-            transform: `scale(${scale})`,
+            transform: `translate3d(0, ${bgOffsetVh}vh, 0) scale(${scale})`,
             transition: "filter 200ms linear",
           }}
         >
