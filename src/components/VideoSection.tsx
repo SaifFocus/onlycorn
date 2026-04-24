@@ -40,7 +40,7 @@ interface VideoSectionProps {
   poster?: string;
   children?: ReactNode;
   overlays?: Overlay[];
-  /** Slow down playback (default 0.85) */
+  /** Slow down playback (default 0.85). Ignored when `scrub` is true. */
   playbackRate?: number;
   /** Section height in vh (default 100) */
   heightVh?: number;
@@ -50,6 +50,19 @@ interface VideoSectionProps {
   eager?: boolean;
   /** Fine-tune the crossfade / blur / parallax per section */
   transition?: TransitionConfig;
+  /**
+   * Scroll-scrubbed playback. When true, autoplay is disabled and the video's
+   * currentTime is driven by scroll progress through the section. Smoothing
+   * comes from `useScrollProgress` so seeking feels fluid.
+   *
+   * Note: scrub quality depends on the source file. MP4s with frequent
+   * keyframes (e.g., every 0.25s) seek smoothly; long-GOP files may stutter.
+   */
+  scrub?: boolean;
+  /** Sub-range of scroll progress (0–1) that maps to 0→duration. Default [0, 1]. */
+  scrubRange?: [number, number];
+  /** Reverse the scrub direction (scroll down → video plays backward). Default false. */
+  scrubReverse?: boolean;
 }
 
 /**
