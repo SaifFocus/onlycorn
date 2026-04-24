@@ -153,82 +153,86 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
           if (typeof _ref === "function") _ref(node);
           else if (_ref) (_ref as React.MutableRefObject<HTMLElement | null>).current = node;
         }}
-        className={`relative w-screen overflow-hidden ${className}`}
+        className={`relative w-screen ${className}`}
         style={{ height: `${heightVh}vh` }}
       >
-        {/* Video layer (parallax background) */}
+        {/* Sticky viewport-locked stage: the video & content stay pinned to the
+            viewport while the section scrolls past, so the parallax translate
+            below is felt as actual movement against the page. */}
         <div
-          className="absolute left-0 right-0 will-change-transform"
-          style={{
-            top: `-${bgInsetVh}vh`,
-            bottom: `-${bgInsetVh}vh`,
-            opacity,
-            filter: blurPx ? `blur(${blurPx}px)` : "none",
-            transform: `translate3d(0, ${bgOffsetVh}vh, 0) scale(${scale})`,
-            transition: "filter 200ms linear",
-          }}
+          className="sticky top-0 left-0 w-screen h-screen overflow-hidden"
+          style={{ height: "100vh" }}
         >
-          {/* Poster backdrop — always rendered so first paint is never blank.
-              Acts as the visible layer until the video element is ready, and
-              as a permanent fallback when autoplay is blocked (low-power iOS). */}
-          {poster ? (
-            <img
-              src={poster}
-              alt=""
-              aria-hidden="true"
-              loading={eager ? "eager" : "lazy"}
-              decoding="async"
-              fetchPriority={eager ? "high" : "low"}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-background" />
-          )}
+          {/* Video layer (parallax background — drifts slowly) */}
+          <div
+            className="absolute left-0 right-0 will-change-transform"
+            style={{
+              top: `-${bgInsetVh}vh`,
+              bottom: `-${bgInsetVh}vh`,
+              opacity,
+              filter: blurPx ? `blur(${blurPx}px)` : "none",
+              transform: `translate3d(0, ${bgOffsetVh}vh, 0) scale(${scale})`,
+              transition: "filter 200ms linear",
+            }}
+          >
+            {poster ? (
+              <img
+                src={poster}
+                alt=""
+                aria-hidden="true"
+                loading={eager ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={eager ? "high" : "low"}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-background" />
+            )}
 
-          {shouldLoad && (
-            <video
-              ref={videoRef}
-              src={src}
-              poster={poster}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload={eager ? "auto" : "metadata"}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
-        </div>
+            {shouldLoad && (
+              <video
+                ref={videoRef}
+                src={src}
+                poster={poster}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload={eager ? "auto" : "metadata"}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </div>
 
-        {/* Overlays */}
-        <div className="absolute inset-0 pointer-events-none">
-          {overlays.includes("vignette") && (
-            <div className="absolute inset-0" style={{ background: "var(--grad-vignette)" }} />
-          )}
-          {overlays.includes("left") && (
-            <div className="absolute inset-0" style={{ background: "var(--grad-side-left)" }} />
-          )}
-          {overlays.includes("right") && (
-            <div className="absolute inset-0" style={{ background: "var(--grad-side-right)" }} />
-          )}
-          {overlays.includes("bottom") && (
-            <div className="absolute inset-0" style={{ background: "var(--grad-bottom)" }} />
-          )}
-          {overlays.includes("top") && (
-            <div className="absolute inset-0" style={{ background: "var(--grad-top)" }} />
-          )}
-          {overlays.includes("dark") && (
-            <div className="absolute inset-0 bg-background/55" />
-          )}
-        </div>
+          {/* Overlays */}
+          <div className="absolute inset-0 pointer-events-none">
+            {overlays.includes("vignette") && (
+              <div className="absolute inset-0" style={{ background: "var(--grad-vignette)" }} />
+            )}
+            {overlays.includes("left") && (
+              <div className="absolute inset-0" style={{ background: "var(--grad-side-left)" }} />
+            )}
+            {overlays.includes("right") && (
+              <div className="absolute inset-0" style={{ background: "var(--grad-side-right)" }} />
+            )}
+            {overlays.includes("bottom") && (
+              <div className="absolute inset-0" style={{ background: "var(--grad-bottom)" }} />
+            )}
+            {overlays.includes("top") && (
+              <div className="absolute inset-0" style={{ background: "var(--grad-top)" }} />
+            )}
+            {overlays.includes("dark") && (
+              <div className="absolute inset-0 bg-background/55" />
+            )}
+          </div>
 
-        {/* Content */}
-        {/* Content (parallax foreground) */}
-        <div
-          className={`relative z-10 w-full h-full will-change-transform ${className}`}
-          style={{ transform: `translate3d(0, ${fgOffsetVh}vh, 0)` }}
-        >
-          {children}
+          {/* Content (parallax foreground — drifts faster) */}
+          <div
+            className="relative z-10 w-full h-full will-change-transform"
+            style={{ transform: `translate3d(0, ${fgOffsetVh}vh, 0)` }}
+          >
+            {children}
+          </div>
         </div>
       </section>
     );
