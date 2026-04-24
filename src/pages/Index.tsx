@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VideoSection } from "@/components/VideoSection";
-import { VIDEOS } from "@/lib/videos";
+import { VIDEOS, POSTERS } from "@/lib/videos";
 
 const Index = () => {
   const [heroLetter, setHeroLetter] = useState<"C" | "P">("C");
@@ -14,7 +14,7 @@ const Index = () => {
       {/* 1. HERO ─ Corn rotating */}
       <VideoSection
         id="hero"
-        src={VIDEOS.hero}
+        src={VIDEOS.hero} poster={POSTERS.hero}
         eager
         playbackRate={0.8}
         overlays={["vignette", "top", "bottom"]}
@@ -62,7 +62,7 @@ const Index = () => {
       {/* 2. DNA ENERGY ─ Glowing strand */}
       <VideoSection
         id="dna"
-        src={VIDEOS.dnaStrand}
+        src={VIDEOS.dnaStrand} poster={POSTERS.dnaStrand}
         playbackRate={0.75}
         overlays={["vignette", "left", "right"]}
       >
@@ -108,7 +108,7 @@ const Index = () => {
       {/* 3. PARTICLE DNA ─ Helix of light */}
       <VideoSection
         id="origin"
-        src={VIDEOS.dnaHelix}
+        src={VIDEOS.dnaHelix} poster={POSTERS.dnaHelix}
         playbackRate={0.8}
         overlays={["vignette", "left", "right"]}
       >
@@ -156,7 +156,7 @@ const Index = () => {
       {/* 4. SEED ─ Floating kernel */}
       <VideoSection
         id="seed"
-        src={VIDEOS.seed}
+        src={VIDEOS.seed} poster={POSTERS.seed}
         playbackRate={0.85}
         overlays={["vignette", "left", "right", "bottom"]}
       >
@@ -201,7 +201,7 @@ const Index = () => {
       {/* 5. GROWTH IN POT ─ Seedling */}
       <VideoSection
         id="growth"
-        src={VIDEOS.seedling}
+        src={VIDEOS.seedling} poster={POSTERS.seedling}
         playbackRate={0.85}
         overlays={["vignette", "left", "right"]}
       >
@@ -245,7 +245,7 @@ const Index = () => {
       {/* 6. FULL PLANT ─ Tall stalk swaying */}
       <VideoSection
         id="plant"
-        src={VIDEOS.plant}
+        src={VIDEOS.plant} poster={POSTERS.plant}
         playbackRate={0.8}
         overlays={["vignette", "left", "right"]}
       >
@@ -299,7 +299,7 @@ const Index = () => {
       {/* 7. FIELD ─ Aerial */}
       <VideoSection
         id="field"
-        src={VIDEOS.field}
+        src={VIDEOS.field} poster={POSTERS.field}
         playbackRate={0.75}
         overlays={["vignette", "top", "bottom"]}
       >
@@ -344,7 +344,7 @@ const Index = () => {
       {/* 8. FINAL CTA ─ field continues, darker */}
       <VideoSection
         id="contact"
-        src={VIDEOS.field}
+        src={VIDEOS.field} poster={POSTERS.field}
         playbackRate={0.6}
         overlays={["vignette", "dark"]}
         heightVh={100}
