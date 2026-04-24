@@ -14,7 +14,7 @@ const Index = () => {
       {/* 1. HERO ─ Corn rotating */}
       <VideoSection
         id="hero"
-        src="/videos/01-hero.mp4"
+        src={VIDEOS.hero}
         eager
         playbackRate={0.8}
         overlays={["vignette", "top", "bottom"]}
@@ -62,7 +62,7 @@ const Index = () => {
       {/* 2. DNA ENERGY ─ Glowing strand */}
       <VideoSection
         id="dna"
-        src="/videos/02-dna-strand.mp4"
+        src={VIDEOS.dnaStrand}
         playbackRate={0.75}
         overlays={["vignette", "left", "right"]}
       >
@@ -108,7 +108,7 @@ const Index = () => {
       {/* 3. PARTICLE DNA ─ Helix of light */}
       <VideoSection
         id="origin"
-        src="/videos/03-dna-helix.mp4"
+        src={VIDEOS.dnaHelix}
         playbackRate={0.8}
         overlays={["vignette", "left", "right"]}
       >
@@ -156,7 +156,7 @@ const Index = () => {
       {/* 4. SEED ─ Floating kernel */}
       <VideoSection
         id="seed"
-        src="/videos/04-seed.mp4"
+        src={VIDEOS.seed}
         playbackRate={0.85}
         overlays={["vignette", "left", "right", "bottom"]}
       >
@@ -201,7 +201,7 @@ const Index = () => {
       {/* 5. GROWTH IN POT ─ Seedling */}
       <VideoSection
         id="growth"
-        src="/videos/05-seedling.mp4"
+        src={VIDEOS.seedling}
         playbackRate={0.85}
         overlays={["vignette", "left", "right"]}
       >
@@ -245,7 +245,7 @@ const Index = () => {
       {/* 6. FULL PLANT ─ Tall stalk swaying */}
       <VideoSection
         id="plant"
-        src="/videos/06-plant.mp4"
+        src={VIDEOS.plant}
         playbackRate={0.8}
         overlays={["vignette", "left", "right"]}
       >
@@ -299,7 +299,7 @@ const Index = () => {
       {/* 7. FIELD ─ Aerial */}
       <VideoSection
         id="field"
-        src="/videos/07-field.mp4"
+        src={VIDEOS.field}
         playbackRate={0.75}
         overlays={["vignette", "top", "bottom"]}
       >
@@ -344,7 +344,7 @@ const Index = () => {
       {/* 8. FINAL CTA ─ field continues, darker */}
       <VideoSection
         id="contact"
-        src="/videos/07-field.mp4"
+        src={VIDEOS.field}
         playbackRate={0.6}
         overlays={["vignette", "dark"]}
         heightVh={100}
