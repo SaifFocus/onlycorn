@@ -20,6 +20,10 @@ export interface TransitionConfig {
   blurAmount?: number;
   /** Ken-burns scale range. Video scales from (1+base-amp/2) → (1+base+amp/2). Default {base: 0.04, amplitude: 0.04} */
   scale?: { base?: number; amplitude?: number };
+  /** Parallax depth: how far the video drifts vs scroll, in vh. 0 disables. Default 18 */
+  parallaxBackground?: number;
+  /** Parallax depth for foreground (children/content) in vh. Should be < background for depth. Default 6 */
+  parallaxForeground?: number;
 }
 
 interface VideoSectionProps {
