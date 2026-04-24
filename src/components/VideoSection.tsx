@@ -85,8 +85,8 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     const blurAmount = transition?.blurAmount ?? 6;
     const scaleBase = transition?.scale?.base ?? 0.04;
     const scaleAmp = transition?.scale?.amplitude ?? 0.04;
-    const parallaxBg = transition?.parallaxBackground ?? 18;
-    const parallaxFg = transition?.parallaxForeground ?? 6;
+    const parallaxBg = transition?.parallaxBackground ?? 22;
+    const parallaxFg = transition?.parallaxForeground ?? 8;
     const ease = resolveEasing(transition?.fadeEasing, "smoothstep");
 
     // Lazy-load video once it nears the viewport.
