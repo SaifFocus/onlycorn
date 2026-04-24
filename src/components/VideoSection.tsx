@@ -241,11 +241,11 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
                 ref={videoRef}
                 src={src}
                 poster={poster}
-                autoPlay
+                autoPlay={!scrub}
                 muted
-                loop
+                loop={!scrub}
                 playsInline
-                preload={eager ? "auto" : "metadata"}
+                preload={scrub || eager ? "auto" : "metadata"}
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
