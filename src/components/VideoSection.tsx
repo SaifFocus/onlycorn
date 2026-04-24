@@ -3,6 +3,25 @@ import { useScrollProgress } from "@/hooks/use-scroll-progress";
 
 type Overlay = "vignette" | "left" | "right" | "bottom" | "top" | "dark" | "none";
 
+/**
+ * Per-section transition tuning. All values normalized 0–1 against scroll progress.
+ * Defaults match the original cinematic feel.
+ */
+export interface TransitionConfig {
+  /** Where the fade-IN finishes (0–1). Lower = snappier reveal. Default 0.18 */
+  fadeInEnd?: number;
+  /** Where the fade-OUT starts (0–1). Higher = scene lingers longer. Default 0.82 */
+  fadeOutStart?: number;
+  /** Where the entry blur clears (0–1). Default 0.1 */
+  blurInEnd?: number;
+  /** Where the exit blur begins (0–1). Default 0.9 */
+  blurOutStart?: number;
+  /** Peak blur in pixels at the very edges. 0 disables blur. Default 6 */
+  blurAmount?: number;
+  /** Ken-burns scale range. Video scales from (1+base-amp/2) → (1+base+amp/2). Default {base: 0.04, amplitude: 0.04} */
+  scale?: { base?: number; amplitude?: number };
+}
+
 interface VideoSectionProps {
   id?: string;
   src: string;
@@ -17,6 +36,8 @@ interface VideoSectionProps {
   className?: string;
   /** Eager load (hero) */
   eager?: boolean;
+  /** Fine-tune the crossfade / blur / parallax per section */
+  transition?: TransitionConfig;
 }
 
 /**
@@ -35,6 +56,7 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
       heightVh = 100,
       className = "",
       eager = false,
+      transition,
     },
     _ref
   ) => {
@@ -42,6 +64,15 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     const videoRef = useRef<HTMLVideoElement>(null);
     const progress = useScrollProgress(sectionRef);
     const [shouldLoad, setShouldLoad] = useState(eager);
+
+    // Resolve transition config with defaults that match the original feel.
+    const fadeInEnd = transition?.fadeInEnd ?? 0.18;
+    const fadeOutStart = transition?.fadeOutStart ?? 0.82;
+    const blurInEnd = transition?.blurInEnd ?? 0.1;
+    const blurOutStart = transition?.blurOutStart ?? 0.9;
+    const blurAmount = transition?.blurAmount ?? 6;
+    const scaleBase = transition?.scale?.base ?? 0.04;
+    const scaleAmp = transition?.scale?.amplitude ?? 0.04;
 
     // Lazy-load video once it nears the viewport.
     useEffect(() => {
@@ -69,22 +100,24 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
       }
     }, [playbackRate, shouldLoad]);
 
-    // Crossfade: ramp in 0→0.18, hold, ramp out 0.82→1.
+    // Crossfade: ramp in 0→fadeInEnd, hold, ramp out fadeOutStart→1.
     let opacity = 1;
-    if (progress < 0.18) opacity = progress / 0.18;
-    else if (progress > 0.82) opacity = (1 - progress) / 0.18;
+    if (progress < fadeInEnd) opacity = progress / fadeInEnd;
+    else if (progress > fadeOutStart) opacity = (1 - progress) / (1 - fadeOutStart);
     opacity = Math.max(0, Math.min(1, opacity));
 
     // Subtle blur at the very edges of crossfade for premium feel.
     const blurPx =
-      progress < 0.1
-        ? (1 - progress / 0.1) * 6
-        : progress > 0.9
-          ? ((progress - 0.9) / 0.1) * 6
-          : 0;
+      blurAmount <= 0
+        ? 0
+        : progress < blurInEnd
+          ? (1 - progress / blurInEnd) * blurAmount
+          : progress > blurOutStart
+            ? ((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
+            : 0;
 
-    // Slight scale parallax on video.
-    const scale = 1.04 + (progress - 0.5) * 0.04;
+    // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
+    const scale = 1 + scaleBase + (progress - 0.5) * scaleAmp;
 
     return (
       <section
