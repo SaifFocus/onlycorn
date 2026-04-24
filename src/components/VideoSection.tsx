@@ -1,5 +1,6 @@
 import { forwardRef, ReactNode, useEffect, useRef, useState } from "react";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
+import { type Easing, resolveEasing } from "@/lib/easings";
 
 type Overlay = "vignette" | "left" | "right" | "bottom" | "top" | "dark" | "none";
 
