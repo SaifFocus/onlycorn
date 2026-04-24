@@ -126,10 +126,41 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     }, [eager]);
 
     useEffect(() => {
-      if (videoRef.current) {
-        videoRef.current.playbackRate = playbackRate;
+      const v = videoRef.current;
+      if (!v) return;
+      if (scrub) {
+        // Scrub mode: pause autoplay; we'll drive currentTime ourselves.
+        v.pause();
+      } else {
+        v.playbackRate = playbackRate;
+        v.play().catch(() => {/* autoplay blocked — poster remains */});
       }
-    }, [playbackRate, shouldLoad]);
+    }, [playbackRate, shouldLoad, scrub]);
+
+    // Scroll-scrubbed playback: map progress (within scrubRange) → currentTime.
+    // Smoothing of `progress` already happens upstream in useScrollProgress.
+    useEffect(() => {
+      if (!scrub) return;
+      const v = videoRef.current;
+      if (!v) return;
+      const dur = v.duration;
+      if (!isFinite(dur) || dur <= 0) return;
+
+      const [a, b] = scrubRange;
+      const span = Math.max(0.0001, b - a);
+      const local = Math.max(0, Math.min(1, (progress - a) / span));
+      const t = scrubReverse ? 1 - local : local;
+      const target = t * dur;
+
+      // Avoid hammering the decoder for sub-frame deltas.
+      if (Math.abs(v.currentTime - target) > 1 / 60) {
+        try {
+          v.currentTime = target;
+        } catch {
+          /* seek can throw if not yet seekable; ignore until metadata loads */
+        }
+      }
+    }, [progress, scrub, scrubRange, scrubReverse, shouldLoad]);
 
     // Crossfade: ramp in 0→fadeInEnd, hold, ramp out fadeOutStart→1.
     // Compute a linear 0–1 ramp first, then shape it through the easing curve
