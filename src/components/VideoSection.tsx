@@ -125,6 +125,14 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
     const scale = 1 + scaleBase + (progress - 0.5) * scaleAmp;
 
+    // Scroll parallax: progress 0→1 maps to -strength/2 → +strength/2 (vh).
+    // Background drifts slower than scroll (translates UP as you scroll DOWN through the section),
+    // foreground drifts faster, creating depth between scenes.
+    const bgOffsetVh = (0.5 - progress) * parallaxBg;
+    const fgOffsetVh = (0.5 - progress) * parallaxFg;
+    // Expand video bounds by the half-range of motion so the layer never reveals an edge.
+    const bgInsetVh = parallaxBg / 2;
+
     return (
       <section
         id={id}
