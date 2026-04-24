@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VideoSection } from "@/components/VideoSection";
+import { VIDEOS } from "@/lib/videos";
 
 const Index = () => {
   const [heroLetter, setHeroLetter] = useState<"C" | "P">("C");
