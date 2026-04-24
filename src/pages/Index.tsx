@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VideoSection } from "@/components/VideoSection";
 
 const Index = () => {
+  const [heroLetter, setHeroLetter] = useState<"C" | "P">("C");
+  const toggleHeroLetter = () => setHeroLetter((l) => (l === "C" ? "P" : "C"));
+
   return (
     <main id="top" className="relative bg-background text-cream">
-      <Navbar />
+      <Navbar letter={heroLetter} onToggle={toggleHeroLetter} />
 
       {/* 1. HERO ─ Corn rotating */}
       <VideoSection
