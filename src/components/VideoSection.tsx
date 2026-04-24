@@ -1,5 +1,6 @@
 import { forwardRef, ReactNode, useEffect, useRef, useState } from "react";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
+import { type Easing, resolveEasing } from "@/lib/easings";
 
 type Overlay = "vignette" | "left" | "right" | "bottom" | "top" | "dark" | "none";
 
@@ -24,6 +25,13 @@ export interface TransitionConfig {
   parallaxBackground?: number;
   /** Parallax depth for foreground (children/content) in vh. Should be < background for depth. Default 6 */
   parallaxForeground?: number;
+  /**
+   * Easing curve applied to the opacity ramp (and blur, when present).
+   * Accepts a named curve ('linear' | 'easeIn' | 'easeOut' | 'easeInOut' |
+   * 'smoothstep' | 'smootherstep' | 'sineInOut' | 'quartInOut') or a custom
+   * function `(t: number) => number`. Default: 'smoothstep'.
+   */
+  fadeEasing?: Easing;
 }
 
 interface VideoSectionProps {
@@ -79,6 +87,7 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     const scaleAmp = transition?.scale?.amplitude ?? 0.04;
     const parallaxBg = transition?.parallaxBackground ?? 18;
     const parallaxFg = transition?.parallaxForeground ?? 6;
+    const ease = resolveEasing(transition?.fadeEasing, "smoothstep");
 
     // Lazy-load video once it nears the viewport.
     useEffect(() => {
@@ -107,19 +116,22 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     }, [playbackRate, shouldLoad]);
 
     // Crossfade: ramp in 0→fadeInEnd, hold, ramp out fadeOutStart→1.
-    let opacity = 1;
-    if (progress < fadeInEnd) opacity = progress / fadeInEnd;
-    else if (progress > fadeOutStart) opacity = (1 - progress) / (1 - fadeOutStart);
-    opacity = Math.max(0, Math.min(1, opacity));
+    // Compute a linear 0–1 ramp first, then shape it through the easing curve
+    // so the curve applies symmetrically to both fade-in and fade-out phases.
+    let fadeT = 1;
+    if (progress < fadeInEnd) fadeT = progress / fadeInEnd;
+    else if (progress > fadeOutStart) fadeT = (1 - progress) / (1 - fadeOutStart);
+    const opacity = ease(Math.max(0, Math.min(1, fadeT)));
 
     // Subtle blur at the very edges of crossfade for premium feel.
+    // Blur uses the inverse of the eased ramp so it's strongest where opacity is lowest.
     const blurPx =
       blurAmount <= 0
         ? 0
         : progress < blurInEnd
-          ? (1 - progress / blurInEnd) * blurAmount
+          ? (1 - ease(progress / blurInEnd)) * blurAmount
           : progress > blurOutStart
-            ? ((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
+            ? ease((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
             : 0;
 
     // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
