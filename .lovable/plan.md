@@ -1,48 +1,47 @@
-# Plan: "P" Toggle Button (Corn ⇄ Porn-letter swap)
+# Move Videos to Lovable Cloud Storage
 
-A small, circular "P" button appears under the `CORN.` logo in the top-left. Clicking it swaps the leading **C** of the giant hero headline (`CORN.`) to **P** — and clicking again restores it. It is styled like a moon/sun day-night toggle, but functionally it only mutates the first letter of the hero title.
+Right now all 7 videos (~82MB total) live in `public/videos/` and ship with the app bundle. That bloats the deploy, hurts cold-load, and gives no CDN-level caching control. We'll move them to a public Lovable Cloud Storage bucket and reference them by URL.
 
-## What changes
+## What you'll get
 
-### 1. Shared state for the letter
-Lift a tiny piece of state to `src/pages/Index.tsx`:
-- `const [heroLetter, setHeroLetter] = useState<"C" | "P">("C")`
-- Pass `heroLetter` down to the hero `<h1>` so the title renders as `{heroLetter}ORN.` instead of hard-coded `CORN.`
-- Pass `heroLetter` and `setHeroLetter` (or a toggle callback) into `<Navbar />` as props.
+- Videos served from Cloud Storage CDN (cached, range-request friendly for video streaming)
+- App bundle drops from ~85MB to ~3MB
+- Same lazy-load behavior in `VideoSection` — no visual change
+- Easy to swap a video later without redeploying the app
 
-The `REIMAGINED.` line stays untouched.
+## Steps
 
-### 2. Navbar button
-In `src/components/Navbar.tsx`:
-- Accept new props: `letter: "C" | "P"`, `onToggle: () => void`.
-- Restructure the left side of the nav from a single `<a>CORN.</a>` into a small vertical stack:
-  - Row 1: existing `CORN.` logo (unchanged styling).
-  - Row 2: new circular button, left-aligned under the logo.
-- Button spec:
-  - `<button type="button" aria-label="Toggle hero letter" aria-pressed={letter === "P"}>`
-  - Circle: ~32px (`h-8 w-8`), `rounded-full`
-  - Border: `border border-cream/30`, hover `border-gold`
-  - Background: transparent → `bg-gold/10` when active (`letter === "P"`)
-  - Text: single character `P`, `font-display`, `text-cream`, turns `text-gold` when active
-  - Smooth `transition-all duration-300`
-  - Only visible/active when scrolled === false OR always (always visible is simpler and matches the "under the CORN logo" placement). We'll keep it always visible; in the scrolled pill state, the stacked layout still fits because the pill grows tall enough for two small rows, but to keep the pill clean we will:
-    - Always render the button under the logo
-    - When `scrolled` is true, hide the button with `opacity-0 pointer-events-none h-0` so the pill stays single-line
-    - When `scrolled` is false (top of page, transparent navbar), show it normally
+1. **Enable Lovable Cloud** on the project (one-click; no external Supabase account needed).
 
-### 3. Hero title binding
-In `Index.tsx` hero `<h1>`:
-```tsx
-{heroLetter}ORN<span className="text-gold">.</span><br />
-REIMAGINED<span className="text-gold">.</span>
-```
-No layout/typography changes — only the first character is dynamic.
+2. **Create a public storage bucket** `videos` via SQL migration, with RLS policies allowing public read.
 
-## Out of scope
-- No real day/night theme switch, no video/background changes.
-- No persistence (resets on reload) — can be added later if desired.
-- No change to the `REIMAGINED.` word or to any other section.
+3. **Upload the 7 video files** from `public/videos/` into the `videos` bucket (done by me via the storage API during the build step).
+
+4. **Centralize video URLs** in a small helper `src/lib/videos.ts`:
+   ```ts
+   export const VIDEOS = {
+     hero:    `${SUPABASE_URL}/storage/v1/object/public/videos/01-hero.mp4`,
+     dnaStrand: `${SUPABASE_URL}/storage/v1/object/public/videos/02-dna-strand.mp4`,
+     // ...etc
+   };
+   ```
+   Using the public object URL directly (no SDK call needed at runtime) so there's zero extra JS.
+
+5. **Replace the 8 hardcoded `/videos/...` paths** in `src/pages/Index.tsx` with `VIDEOS.xxx`. Also update the `og:image` reference in `index.html` (will switch it to a poster image path or remove — `og:image` shouldn't point at an mp4 anyway).
+
+6. **Delete `public/videos/`** so the files no longer ship in the bundle.
+
+## Technical notes
+
+- Bucket is **public** — videos are non-sensitive marketing assets, and public buckets get the best CDN behavior plus simplest `<video src>` usage (no signed URLs to refresh).
+- `VideoSection` already does `IntersectionObserver` lazy loading and uses `preload="metadata"` for non-hero videos, so we keep streaming benefits.
+- `SUPABASE_URL` comes from the auto-generated `src/integrations/supabase/client.ts` env that Lovable Cloud creates on enable.
+- No changes to `VideoSection.tsx` — it already accepts any URL via `src`.
 
 ## Files touched
-- `src/pages/Index.tsx` — add `useState`, pass props, bind first letter.
-- `src/components/Navbar.tsx` — accept props, add circular `P` button under the logo, hide it when scrolled.
+
+- new: `supabase/migrations/<ts>_videos_bucket.sql` (create bucket + RLS)
+- new: `src/lib/videos.ts` (URL map)
+- edit: `src/pages/Index.tsx` (swap 8 src paths)
+- edit: `index.html` (fix `og:image`)
+- delete: `public/videos/*.mp4`
