@@ -11,12 +11,12 @@ const Index = () => {
     <main id="top" className="relative bg-background text-cream">
       <Navbar letter={heroLetter} onToggle={toggleHeroLetter} />
 
-      {/* 1. HERO ─ Corn rotating */}
+      {/* 1. HERO ─ Corn rotating (scroll-scrubbed) */}
       <VideoSection
         id="hero"
         src={VIDEOS.hero} poster={POSTERS.hero}
         eager
-        playbackRate={0.8}
+        scrub
         overlays={["vignette", "top", "bottom"]}
       >
         <div className="absolute inset-0 flex flex-col">
