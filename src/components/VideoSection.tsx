@@ -116,19 +116,22 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
     }, [playbackRate, shouldLoad]);
 
     // Crossfade: ramp in 0→fadeInEnd, hold, ramp out fadeOutStart→1.
-    let opacity = 1;
-    if (progress < fadeInEnd) opacity = progress / fadeInEnd;
-    else if (progress > fadeOutStart) opacity = (1 - progress) / (1 - fadeOutStart);
-    opacity = Math.max(0, Math.min(1, opacity));
+    // Compute a linear 0–1 ramp first, then shape it through the easing curve
+    // so the curve applies symmetrically to both fade-in and fade-out phases.
+    let fadeT = 1;
+    if (progress < fadeInEnd) fadeT = progress / fadeInEnd;
+    else if (progress > fadeOutStart) fadeT = (1 - progress) / (1 - fadeOutStart);
+    const opacity = ease(Math.max(0, Math.min(1, fadeT)));
 
     // Subtle blur at the very edges of crossfade for premium feel.
+    // Blur uses the inverse of the eased ramp so it's strongest where opacity is lowest.
     const blurPx =
       blurAmount <= 0
         ? 0
         : progress < blurInEnd
-          ? (1 - progress / blurInEnd) * blurAmount
+          ? (1 - ease(progress / blurInEnd)) * blurAmount
           : progress > blurOutStart
-            ? ((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
+            ? ease((progress - blurOutStart) / (1 - blurOutStart)) * blurAmount
             : 0;
 
     // Ken-burns parallax: scale ramps from (1+base-amp/2) at top → (1+base+amp/2) at bottom.
