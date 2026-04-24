@@ -1,47 +1,65 @@
-# Move Videos to Lovable Cloud Storage
+# Scroll-Scrubbed Cinematic Sections
 
-Right now all 7 videos (~82MB total) live in `public/videos/` and ship with the app bundle. That bloats the deploy, hurts cold-load, and gives no CDN-level caching control. We'll move them to a public Lovable Cloud Storage bucket and reference them by URL.
+Reworking the storytelling engine into an Apple-keynote / Webflow-style scroll experience. Each scene **pins to the viewport**, the **video scrubs forward/backward with scroll**, content moves at three different parallax depths, and adjacent scenes **crossfade** at their boundaries.
 
-## What you'll get
+## What the user will feel
 
-- Videos served from Cloud Storage CDN (cached, range-request friendly for video streaming)
-- App bundle drops from ~85MB to ~3MB
-- Same lazy-load behavior in `VideoSection` — no visual change
-- Easy to swap a video later without redeploying the app
+- Scrolling past the hero pauses the page visually; the corn rotates in lockstep with the wheel/trackpad.
+- Reaching the end of a scene smoothly bleeds into the next one without snapping.
+- Side copy drifts at a different rate than headlines, which drift at a different rate than the video — three layers of depth.
+- Scrolling back UP runs the video in reverse — confirms the "you're driving the playback" feel.
 
-## Steps
+## Architecture
 
-1. **Enable Lovable Cloud** on the project (one-click; no external Supabase account needed).
+Replace the current `<VideoSection>` (which sized itself 100vh and played its video on autoplay) with a new pinned model:
 
-2. **Create a public storage bucket** `videos` via SQL migration, with RLS policies allowing public read.
+```text
+<ScrubScene heightVh={300}>          ← outer "scroll track" — TALL (e.g. 300vh)
+  ├─ <div sticky top-0 h-screen>     ← pinned viewport stage
+  │    ├─ video (currentTime = progress * duration)
+  │    ├─ overlays (vignette, gradients)
+  │    └─ <ParallaxLayer depth=...>  ← background / midground / foreground slots
+  │         children (text, badges)
+  └─ (scroll height comes from outer track height)
+</ScrubScene>
+```
 
-3. **Upload the 7 video files** from `public/videos/` into the `videos` bucket (done by me via the storage API during the build step).
+### 1. Scroll-scrubbed video
+- New hook `useScrubbedVideo(videoRef, progress, duration)` writes `video.currentTime = progress * duration` inside `requestAnimationFrame`.
+- Video element gets `preload="auto"`, `muted`, `playsInline`, **no** `autoplay` / `loop`.
+- Smoothing: lerp current → target by ~0.15 each frame so fast scroll bursts don't jitter the frame.
+- Lazy: only attach scrubbing when the section's pinned stage is in view (IntersectionObserver, same pattern as today).
+- Fallback: if `video.readyState < 2` (metadata not loaded), show poster only — no errors.
 
-4. **Centralize video URLs** in a small helper `src/lib/videos.ts`:
-   ```ts
-   export const VIDEOS = {
-     hero:    `${SUPABASE_URL}/storage/v1/object/public/videos/01-hero.mp4`,
-     dnaStrand: `${SUPABASE_URL}/storage/v1/object/public/videos/02-dna-strand.mp4`,
-     // ...etc
-   };
-   ```
-   Using the public object URL directly (no SDK call needed at runtime) so there's zero extra JS.
+### 2. Sticky fullscreen pinning
+- Outer `<section>` is `heightVh` tall (default 250vh — tunable per scene; longer = slower scrub).
+- Inner `<div className="sticky top-0 h-screen overflow-hidden">` holds the visual stage.
+- Section progress = how far we've scrolled through the outer track (0 when its top hits viewport top, 1 when its bottom leaves viewport top).
+- This is pure CSS sticky — no scroll hijacking, native momentum / accessibility preserved.
 
-5. **Replace the 8 hardcoded `/videos/...` paths** in `src/pages/Index.tsx` with `VIDEOS.xxx`. Also update the `og:image` reference in `index.html` (will switch it to a poster image path or remove — `og:image` shouldn't point at an mp4 anyway).
+### 3. Crossfade between sections
+- Each scene fades its stage in over progress `0 → 0.08` and fades out over `0.92 → 1`.
+- Because adjacent sections' fade-in/fade-out windows overlap (last 8vh of one ≈ first 8vh of the next), the two stages are simultaneously visible and blend.
+- Easing (existing `easings.ts` system) keeps it organic; default `smoothstep`.
 
-6. **Delete `public/videos/`** so the files no longer ship in the bundle.
+### 4. Three-layer parallax depth
+- New `<ParallaxLayer depth="background" | "midground" | "foreground">` component.
+- Multipliers (vh per unit progress): background `−12`, midground `−4`, foreground `+4`.
+- Negative = drifts up while scrolling down (recedes), positive = drifts down (approaches camera).
+- Depth presets are tunable via prop overrides. Layers are GPU-transformed (`translate3d`).
 
-## Technical notes
+## Files
 
-- Bucket is **public** — videos are non-sensitive marketing assets, and public buckets get the best CDN behavior plus simplest `<video src>` usage (no signed URLs to refresh).
-- `VideoSection` already does `IntersectionObserver` lazy loading and uses `preload="metadata"` for non-hero videos, so we keep streaming benefits.
-- `SUPABASE_URL` comes from the auto-generated `src/integrations/supabase/client.ts` env that Lovable Cloud creates on enable.
-- No changes to `VideoSection.tsx` — it already accepts any URL via `src`.
+- **new** `src/hooks/use-scrubbed-video.ts` — `currentTime` writer with lerp smoothing
+- **new** `src/components/ScrubScene.tsx` — pinned section + sticky stage + crossfade
+- **new** `src/components/ParallaxLayer.tsx` — depth-tagged content slot
+- **edit** `src/pages/Index.tsx` — swap each `<VideoSection>` for `<ScrubScene>` and wrap text in `<ParallaxLayer>` slots
+- **keep** `src/components/VideoSection.tsx` — leave as-is for now (deletable later; keeps any other consumers safe)
+- **keep** `src/lib/easings.ts`, `src/lib/videos.ts`, posters — reused unchanged
 
-## Files touched
+## Trade-offs you should know
 
-- new: `supabase/migrations/<ts>_videos_bucket.sql` (create bucket + RLS)
-- new: `src/lib/videos.ts` (URL map)
-- edit: `src/pages/Index.tsx` (swap 8 src paths)
-- edit: `index.html` (fix `og:image`)
-- delete: `public/videos/*.mp4`
+- **Scroll length grows.** Each scene becomes ~250vh of track instead of 100vh, so total page height roughly 2.5× longer. That's the cost of scrub feel; tunable per section.
+- **No looping.** Videos play once across the section's scroll range and reverse on scroll back. If you want a clip to loop ambiently *inside* a held position, that's a separate add (we can mark specific scenes as `loop` + autoplay instead of scrub).
+- **Mobile scrubbing of mp4 is tricky.** iOS won't decode arbitrary seeks smoothly on heavy clips. Plan: on small screens, fall back to autoplay+loop (current behavior) and skip scrubbing — the parallax + crossfade still works.
+- **Accessibility:** respect `prefers-reduced-motion` — disable scrub & parallax, fall back to autoplay loop.
