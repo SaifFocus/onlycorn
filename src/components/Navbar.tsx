@@ -8,7 +8,12 @@ const links = [
   { label: "Contact", href: "#contact" },
 ];
 
-export const Navbar = () => {
+interface NavbarProps {
+  letter: "C" | "P";
+  onToggle: () => void;
+}
+
+export const Navbar = ({ letter, onToggle }: NavbarProps) => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -17,6 +22,8 @@ export const Navbar = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const active = letter === "P";
 
   return (
     <header
@@ -42,9 +49,33 @@ export const Navbar = () => {
           transition: "all 700ms cubic-bezier(0.22, 1, 0.36, 1)",
         }}
       >
-        <a href="#top" className="font-display text-cream tracking-widest text-lg md:text-xl select-none">
-          CORN<span className="text-gold">.</span>
-        </a>
+        <div className="flex flex-col items-start gap-2">
+          <a href="#top" className="font-display text-cream tracking-widest text-lg md:text-xl select-none">
+            {letter}ORN<span className="text-gold">.</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label="Toggle hero letter"
+            aria-pressed={active}
+            className={`flex items-center justify-center rounded-full font-display text-sm leading-none border transition-all duration-300 hover:border-gold hover:text-gold ${
+              active
+                ? "bg-gold/15 border-gold text-gold shadow-[0_0_18px_hsl(var(--gold)/0.45)]"
+                : "bg-transparent border-cream/30 text-cream"
+            }`}
+            style={{
+              width: "1.75rem",
+              height: "1.75rem",
+              opacity: scrolled ? 0 : 1,
+              transform: scrolled ? "translateY(-4px) scale(0.85)" : "translateY(0) scale(1)",
+              pointerEvents: scrolled ? "none" : "auto",
+              marginTop: scrolled ? "-1.75rem" : "0",
+            }}
+          >
+            P
+          </button>
+        </div>
 
         <ul className="hidden md:flex items-center gap-1">
           {links.map((l) => (
