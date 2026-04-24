@@ -25,6 +25,13 @@ export interface TransitionConfig {
   parallaxBackground?: number;
   /** Parallax depth for foreground (children/content) in vh. Should be < background for depth. Default 6 */
   parallaxForeground?: number;
+  /**
+   * Easing curve applied to the opacity ramp (and blur, when present).
+   * Accepts a named curve ('linear' | 'easeIn' | 'easeOut' | 'easeInOut' |
+   * 'smoothstep' | 'smootherstep' | 'sineInOut' | 'quartInOut') or a custom
+   * function `(t: number) => number`. Default: 'smoothstep'.
+   */
+  fadeEasing?: Easing;
 }
 
 interface VideoSectionProps {
