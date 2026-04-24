@@ -14,4 +14,18 @@ export const VIDEOS = {
   field: `${BASE}/07-field.mp4`,
 } as const;
 
+/**
+ * Lightweight (1280×704, ~20–90KB) JPG posters that render instantly while the
+ * matching video is lazy-loading. Same key set as VIDEOS for 1:1 pairing.
+ */
+export const POSTERS = {
+  hero: `${BASE}/posters/01-hero.jpg`,
+  dnaStrand: `${BASE}/posters/02-dna-strand.jpg`,
+  dnaHelix: `${BASE}/posters/03-dna-helix.jpg`,
+  seed: `${BASE}/posters/04-seed.jpg`,
+  seedling: `${BASE}/posters/05-seedling.jpg`,
+  plant: `${BASE}/posters/06-plant.jpg`,
+  field: `${BASE}/posters/07-field.jpg`,
+} as const;
+
 export type VideoKey = keyof typeof VIDEOS;

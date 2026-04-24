@@ -140,6 +140,23 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
             transition: "filter 200ms linear",
           }}
         >
+          {/* Poster backdrop — always rendered so first paint is never blank.
+              Acts as the visible layer until the video element is ready, and
+              as a permanent fallback when autoplay is blocked (low-power iOS). */}
+          {poster ? (
+            <img
+              src={poster}
+              alt=""
+              aria-hidden="true"
+              loading={eager ? "eager" : "lazy"}
+              decoding="async"
+              fetchPriority={eager ? "high" : "low"}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-background" />
+          )}
+
           {shouldLoad && (
             <video
               ref={videoRef}
@@ -152,9 +169,6 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
               preload={eager ? "auto" : "metadata"}
               className="absolute inset-0 w-full h-full object-cover"
             />
-          )}
-          {!shouldLoad && (
-            <div className="absolute inset-0 bg-background" />
           )}
         </div>
 
