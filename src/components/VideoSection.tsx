@@ -3,6 +3,25 @@ import { useScrollProgress } from "@/hooks/use-scroll-progress";
 
 type Overlay = "vignette" | "left" | "right" | "bottom" | "top" | "dark" | "none";
 
+/**
+ * Per-section transition tuning. All values normalized 0–1 against scroll progress.
+ * Defaults match the original cinematic feel.
+ */
+export interface TransitionConfig {
+  /** Where the fade-IN finishes (0–1). Lower = snappier reveal. Default 0.18 */
+  fadeInEnd?: number;
+  /** Where the fade-OUT starts (0–1). Higher = scene lingers longer. Default 0.82 */
+  fadeOutStart?: number;
+  /** Where the entry blur clears (0–1). Default 0.1 */
+  blurInEnd?: number;
+  /** Where the exit blur begins (0–1). Default 0.9 */
+  blurOutStart?: number;
+  /** Peak blur in pixels at the very edges. 0 disables blur. Default 6 */
+  blurAmount?: number;
+  /** Ken-burns scale range. Video scales from (1+base-amp/2) → (1+base+amp/2). Default {base: 0.04, amplitude: 0.04} */
+  scale?: { base?: number; amplitude?: number };
+}
+
 interface VideoSectionProps {
   id?: string;
   src: string;
@@ -17,6 +36,8 @@ interface VideoSectionProps {
   className?: string;
   /** Eager load (hero) */
   eager?: boolean;
+  /** Fine-tune the crossfade / blur / parallax per section */
+  transition?: TransitionConfig;
 }
 
 /**
