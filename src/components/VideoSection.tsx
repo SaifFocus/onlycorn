@@ -211,7 +211,13 @@ export const VideoSection = forwardRef<HTMLElement, VideoSectionProps>(
         </div>
 
         {/* Content */}
-        <div className={`relative z-10 w-full h-full ${className}`}>{children}</div>
+        {/* Content (parallax foreground) */}
+        <div
+          className={`relative z-10 w-full h-full will-change-transform ${className}`}
+          style={{ transform: `translate3d(0, ${fgOffsetVh}vh, 0)` }}
+        >
+          {children}
+        </div>
       </section>
     );
   }
