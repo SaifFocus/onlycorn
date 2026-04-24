@@ -28,7 +28,7 @@ const Index = () => {
               className="font-display text-cream leading-[0.9] text-shadow-soft animate-fade-in"
               style={{ fontSize: "clamp(3.5rem, 11vw, 11rem)" }}
             >
-              CORN<span className="text-gold">.</span><br />
+              {heroLetter}ORN<span className="text-gold">.</span><br />
               REIMAGINED<span className="text-gold">.</span>
             </h1>
             <p
