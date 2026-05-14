@@ -1,6 +1,7 @@
 import { forwardRef, ReactNode, useEffect, useRef, useState } from "react";
 import { useScrollProgress } from "@/hooks/use-scroll-progress";
 import { type Easing, resolveEasing } from "@/lib/easings";
+import { useParallaxOverride } from "@/lib/parallax-settings";
 
 type Overlay = "vignette" | "left" | "right" | "bottom" | "top" | "dark" | "none";
 
