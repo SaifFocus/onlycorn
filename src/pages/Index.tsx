@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VideoSection } from "@/components/VideoSection";
 import { ParallaxDevPanel } from "@/components/ParallaxDevPanel";
+import { Footer } from "@/components/Footer";
 import { VIDEOS, POSTERS } from "@/lib/videos";
 
 const Index = () => {
