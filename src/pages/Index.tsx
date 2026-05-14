@@ -372,9 +372,28 @@ const Index = () => {
             Begin the Harvest →
           </a>
 
-          <footer className="absolute bottom-8 left-0 right-0 flex items-center justify-between px-6 md:px-14 text-[10px] tracking-[0.4em] uppercase text-cream/50">
-            <span>© CORN. REIMAGINED.</span>
-            <span className="hidden md:inline">A Cinematic Study · MMXXVI</span>
+          <footer className="absolute bottom-8 left-0 right-0 px-6 md:px-14 text-[10px] tracking-[0.3em] uppercase text-cream/55">
+            <p className="max-w-3xl mx-auto text-center normal-case tracking-normal text-[11px] leading-relaxed text-cream/65">
+              Colophon — This site was crafted by{" "}
+              <a
+                href="https://focusbranding.se"
+                rel="noopener"
+                title="Focus Branding — Swedish branding & web design agency"
+                className="text-gold hover:underline underline-offset-4"
+              >
+                Focus Branding
+              </a>
+              , a Swedish{" "}
+              <a
+                href="https://focusbranding.se/production"
+                rel="noopener"
+                title="Video production by FOQUS"
+                className="text-cream hover:text-gold underline-offset-4 hover:underline"
+              >
+                video production agency
+              </a>{" "}
+              specializing in cinematic brand storytelling, web design and SEO.
+            </p>
           </footer>
         </div>
       </VideoSection>
