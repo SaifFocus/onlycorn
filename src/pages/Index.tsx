@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { VideoSection } from "@/components/VideoSection";
+import { ParallaxDevPanel } from "@/components/ParallaxDevPanel";
 import { VIDEOS, POSTERS } from "@/lib/videos";
 
 const Index = () => {
@@ -377,6 +378,7 @@ const Index = () => {
           </footer>
         </div>
       </VideoSection>
+      <ParallaxDevPanel />
     </main>
   );
 };
