@@ -378,6 +378,7 @@ const Index = () => {
           </footer>
         </div>
       </VideoSection>
+      <ParallaxDevPanel />
     </main>
   );
 };
